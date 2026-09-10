@@ -1,5 +1,11 @@
 from django.db import transaction
-from rest_framework.serializers import CharField, ModelSerializer, SerializerMethodField
+from rest_framework.serializers import (
+    CharField,
+    CurrentUserDefault,
+    HiddenField,
+    ModelSerializer,
+    SerializerMethodField,
+)
 
 from core.models import Compra, ItensCompra
 
@@ -11,7 +17,7 @@ class ItensCompraCreateUpdateSerializer(ModelSerializer):
 
 
 class CompraCreateUpdateSerializer(ModelSerializer):
-    itens = ItensCompraCreateUpdateSerializer(many=True)
+    usuario = HiddenField(default=CurrentUserDefault())
 
     class Meta:
         model = Compra
@@ -25,6 +31,7 @@ class CompraCreateUpdateSerializer(ModelSerializer):
             for item_data in itens_data:
                 ItensCompra.objects.create(compra=compra, **item_data)
         return super().update(compra, validated_data)
+
     class Meta:  # noqa: F811
         model = Compra
         fields = ('id', 'usuario', 'itens')
@@ -61,6 +68,7 @@ class CompraSerializer(ModelSerializer):
     status = CharField(source='get_status_display', read_only=True)
     itens = ItensCompraSerializer(many=True, read_only=True)
     fields = ('id', 'usuario', 'status', 'total', 'itens')
+
     class Meta:
         model = Compra
         fields = '__all__'
